@@ -39,7 +39,7 @@ def send_chat(text_doc: str, name_issue: str) -> str:
         # generamos la consulta a chatgpt
         client = OpenAI(
         base_url="https://openrouter.ai/api/v1",
-        api_key= os.getenv('APIKEY_OPENROUTER'),
+        api_key= os.getenv('OPENROUTER_APIKEY'),
         )
 
         completion = client.chat.completions.create(

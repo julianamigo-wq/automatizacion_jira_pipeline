@@ -18,7 +18,7 @@ except ImportError as e:
 # =========================================================================
 
 # --- CONFIGURACIÓN ---
-JIRA_URL = os.getenv('JIRA_BASE_URL')
-JIRA_USER = os.getenv('JIRA_API_USER')
-JIRA_TOKEN = os.getenv('JIRA_API_TOKEN')
+JIRA_URL = os.getenv('URL_JIRA')
+JIRA_USER = os.getenv('USER_JIRA')
+JIRA_TOKEN = os.getenv('JIRA_TOKEN')
 

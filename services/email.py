@@ -7,10 +7,10 @@ import os
 # --- CONFIGURACIÓN NECESARIA ---
 
 # 1. Tu dirección de Gmail (usa variables de entorno o configura de forma segura)
-SENDER_EMAIL = os.getenv('SENDER_EMAIL') #"tu_correo_de_gmail@gmail.com"
+SENDER_EMAIL = os.getenv('EMAIL_SENDER') #"tu_correo_de_gmail@gmail.com"
 
 # 2. La contraseña de aplicación (IMPORTANTE: NO USAR CONTRASEÑA NORMAL)
-SENDER_PASSWORD = os.getenv('SENDER_PASSWORD') #"tu_contraseña_de_aplicacion"
+SENDER_PASSWORD = os.getenv('PASSWORD_SENDER') #"tu_contraseña_de_aplicacion"
 
 # 3. El destinatario
 RECEIVER_EMAIL = SENDER_EMAIL #"correo_destino@ejemplo.com"

@@ -1,0 +1,27 @@
+name: 'Jira Webhook Direct'
+
+# Este flujo de trabajo se ejecuta desde el webhook de JIRA
+on:
+  repository_dispatch:
+
+# Permisos mínimos necesarios
+permissions:
+  contents: read
+
+jobs:
+  process_jira_webhook:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        # Añade openpyxl y las otras librerías necesarias para todo tu flujo
+        run: |
+          pip install requests pypdf python-docx openai openpyxl

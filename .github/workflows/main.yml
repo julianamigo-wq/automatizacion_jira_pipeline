@@ -44,6 +44,10 @@ jobs:
           USER_JIRA: ${{ secrets.USER_JIRA }}
           JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
           OPENROUTER_APIKEY: ${{secrets.OPENROUTER_APIKEY}}
+
+          # credenciales de smtp
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}      
+          PASSWORD_SENDER: ${{ secrets.PASSWORD_SENDER }}
           
           # Inyecta la clave de la incidencia (de env) y la ruta dinámica (de $GITHUB_ENV)
           ISSUE_KEY: ${{ env.ISSUE_KEY }}

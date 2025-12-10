@@ -33,7 +33,7 @@ jobs:
       # 4. Instala todas las dependencias (tu solicitud)
       - name: Install dependencies
         run: |
-          pip install requests pypdf python-docx openai openpyxl
+          pip install requests pypdf python-docx openai openpyxl pandas xlsxwriter
           
       # 5. Ejecuta el script principal de Python (Descarga + Procesamiento)
       - name: Ejecutar Descarga de Adjuntos

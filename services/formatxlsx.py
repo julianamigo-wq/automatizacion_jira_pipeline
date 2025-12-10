@@ -1,85 +1,89 @@
-import openpyxl
-import csv
-import uuid
+import pandas as pd
 from io import StringIO
-from openpyxl.styles import Font, PatternFill, Alignment
-from pathlib import Path # Necesitamos Path para manejar rutas de forma limpia
+import uuid
+from pathlib import Path
 
-def createxlsx(csv_text: str, target_dir: Path, name_issue: str):
+# NOTA: openpyxl ya no se necesita para la escritura de datos,
+# pero openpyxl y csv ya no son necesarios para esta lógica.
+
+def createxlsx(csv_text: str, target_dir: Path, name_issue: str) -> Path:
     """
-    Convierte el texto CSV en un archivo XLSX, aplica formato y lo guarda
-    en el directorio especificado.
+    Convierte el texto CSV en un archivo XLSX usando Pandas y XlsxWriter,
+    aplica formato, y lo guarda en el directorio especificado.
 
     :param csv_text: El string de datos en formato CSV (obtenido de la IA).
     :param target_dir: La ruta (Path object) donde se debe guardar el archivo XLSX.
+    :param name_issue: La clave de la incidencia (ej: T1-1).
+    :return: La ruta completa del archivo XLSX creado.
     """
-    # --- 1. CONFIGURACIÓN DE ESTILOS ---
-    # ... (Sin cambios) ...
-    verde_claro = "CCFFCC" 
-    fill_header = PatternFill(start_color=verde_claro, end_color=verde_claro, fill_type="solid")
-    font_header = Font(name='Calibri', size=14, bold=True, color="000000")
-    alignment_header = Alignment(horizontal='center', vertical='center', wrap_text=True)
 
-    # --- 2. PREPARACIÓN Y PARSEO DE DATOS ---
+    # --- 1. PREPARACIÓN Y PARSEO DE DATOS (CON PANDAS) ---
+    
     csv_file = StringIO(csv_text.strip())
-    csv_reader = csv.reader(csv_file, delimiter=';') # <-- ¡MODIFICADO!
-
-    # 3. CREACIÓN DEL LIBRO Y ESCRITURA
-    workbook = openpyxl.Workbook()
-    sheet = workbook.active
-    sheet.title = "Casos de Prueba"
-
-    es_encabezado = True 
-
-    # Escribir las filas en la hoja de cálculo
-    for row_data in csv_reader:
-        if not row_data or all(not cell for cell in row_data):
-            continue
-
-        sheet.append(row_data)
-
-        if es_encabezado:
-            row_number = sheet.max_row
-            for cell in sheet[row_number]:
-                cell.fill = fill_header
-                cell.font = font_header
-                cell.alignment = alignment_header
-            es_encabezado = False
-        
-    # --- 4. AUTO-AJUSTE Y GUARDADO ---
-
-    # Auto-ajustar el ancho de las columnas (optimizado para el contenido)
-    for col in sheet.columns:
-        max_length = 0
-        column = col[0].column_letter
-        for cell in col:
-            try:
-                cell_length = len(str(cell.value)) * 1.2
-                if cell_length > max_length:
-                    max_length = cell_length
-            except:
-                pass
-        
-        if max_length > 60:
-            max_length = 60
-        if max_length < 10:
-            max_length = 10
-            
-        sheet.column_dimensions[column].width = max_length
-
-    # 5. CONSTRUCCIÓN DE LA RUTA DE GUARDADO Y ALMACENAMIENTO (¡NUEVA LÓGICA!)
     
-    # Generar un ID único corto (ej: '5a4c3f9e')
+    # 1.1. Leer el CSV en un DataFrame. Asumimos el delimitador es ';'
+    try:
+        # Usamos header=0 para que la primera fila sea el encabezado
+        df = pd.read_csv(csv_file, sep=';', header=0) 
+    except Exception as e:
+        print(f"ERROR: Falló el parseo del CSV con Pandas: {e}")
+        raise e
+
+    # --- 2. CONSTRUCCIÓN DE LA RUTA Y ESCRITURA ---
+    
+    # 2.1. Generar ID único y nombre de archivo
     unique_id = uuid.uuid4().hex[:8]
-    
-    # Construcción del nombre: CP_NAMEISSUE_UNIQUEID.xlsx
-    # Ejemplo: CP_PROYECTO-123_5a4c3f9e.xlsx
     nombre_base = f"CP_{name_issue}_{unique_id}.xlsx"
-    
-    # Combinar la ruta de destino (target_dir) con el nombre del archivo
     ruta_guardado = target_dir / nombre_base 
     
-    # Guardar el libro de trabajo en la ruta completa
-    workbook.save(ruta_guardado)
+    # 2.2. Definir el motor de escritura
+    writer = pd.ExcelWriter(ruta_guardado, engine='xlsxwriter')
+    
+    # 2.3. Escribir los datos en el archivo (¡Rápido y eficiente!)
+    # startrow=0, header=True son valores por defecto, pero se incluyen para claridad
+    df.to_excel(writer, sheet_name='Casos de Prueba', index=False, startrow=0, header=True)
+    
+    # --- 3. APLICACIÓN DE FORMATO (CON XLSXWRITER) ---
+    
+    # 3.1. Obtener el objeto workbook y worksheet para aplicar formato
+    workbook = writer.book
+    worksheet = writer.sheets['Casos de Prueba']
+    
+    # 3.2. Definir el formato del encabezado
+    verde_claro_hex = '#CCFFCC'
+    
+    # El formato se crea usando el objeto workbook de XlsxWriter
+    header_format = workbook.add_format({
+        'bold': True,
+        'font_size': 14,
+        'bg_color': verde_claro_hex,
+        'align': 'center',
+        'valign': 'vcenter',
+        'text_wrap': True
+    })
 
-    print(f"Archivo '{nombre_base}' creado exitosamente en: {ruta_guardado}")
+    # 3.3. Aplicar formato a la fila de encabezado (fila 0 del DF, que es la fila 1 en Excel)
+    for col_num, value in enumerate(df.columns.values):
+        # write() es el método de XlsxWriter para escribir celdas/aplicar formato
+        worksheet.write(0, col_num, value, header_format)
+    
+    # 3.4. Auto-ajuste de columnas (Lógica optimizada)
+    for i, col in enumerate(df.columns):
+        # Calculamos el ancho ideal basado en el contenido de la columna, 
+        # pero limitado para evitar columnas gigantes
+        max_len = max(
+            df[col].astype(str).map(len).max(), # Longitud máxima del contenido
+            len(col) # Longitud del encabezado
+        ) or 10 # Si no hay datos, usar 10 como mínimo
+        
+        width = min(max_len * 1.2, 60) # Limitar el ancho máximo a 60
+        worksheet.set_column(i, i, width) # Aplicar el ancho a la columna
+        
+    # --- 4. CIERRE Y GUARDADO ---
+    
+    # 4.1. Guardar el archivo (esto es manejado por el writer object)
+    writer.close()
+    
+    print(f"Archivo '{nombre_base}' (Pandas/XlsxWriter) creado exitosamente en: {ruta_guardado}")
+    
+    return ruta_guardado

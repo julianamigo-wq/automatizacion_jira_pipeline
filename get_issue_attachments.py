@@ -115,15 +115,12 @@ def process_downloaded_files(target_dir: str):
                 # Utilizamos str(filepath) para asegurar que ProcessDOC reciba la ruta como cadena
                 file_text = ProcessDOC(str(filepath)).process()
                 
-                # 2. Imprimimos una parte del resultado para verificación (Opcional)
-                print(f"      - Extracción exitosa de archivo {file_text} en el directorio {target_dir}.")
-                
-                # 3. Enviar a send_chat (dentro creamos el prompt y concatenamos file_text)
+                # 2. Enviar a send_chat (dentro creamos el prompt y concatenamos file_text)
                 if(file_text):
                     ai_text = send_chat(file_text, ISSUE_KEY)
                     # Validamos ia_text
                     if ai_text:
-                        # Generar archivo XLSX
+                        # 3. Generar archivo XLSX
                         createxlsx(ai_text, target_dir, ISSUE_KEY)
                         print(f"  - Flujo HU Terminado: {filepath.name}")
                     else:

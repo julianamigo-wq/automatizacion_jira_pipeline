@@ -19,31 +19,31 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         
-      # 2. Ejecuta el script Bash para crear carpetas
       - name: Crear Carpeta CP y Carpeta de la Incidencia
-        # El script crea CP/PROY-123 y exporta la ruta a $GITHUB_ENV como TARGET_DIR
         run: bash create_folders.sh "${{ env.ISSUE_KEY }}" 
       
-      # 3. Configura el entorno Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      # 4. INSTALACIÓN OPTIMIZADA CON CACHING (Nuevo)
+      # --- PASO 4: INSTALACIÓN OPTIMIZADA (USANDO RUTA EXPLÍCITA) ---
+      
+      # 4a. Cache pip dependencies
       - name: Cache pip dependencies
         uses: actions/cache@v4
         with:
-          # Ruta donde pip guarda los archivos de caché
-          path: ~/.cache/pip
-          # La clave de caché es única para el SO y el contenido de requirements.txt
+          # RUTA CORREGIDA: Usamos una ubicación temporal explícita para garantizar consistencia
+          path: ${{ runner.temp }}/pip_cache_deps 
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          # Si la clave actual no existe, intenta restaurar la última clave que coincida
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      # 4b. Install dependencies
       - name: Install dependencies (Usando requirements.txt)
-        # Instalación limpia que usa la caché si está disponible, sino descarga
+        env:
+          # Indicamos a pip que use la MISMA RUTA explícita para guardar/buscar la caché
+          PIP_CACHE_DIR: ${{ runner.temp }}/pip_cache_deps
         run: pip install -r requirements.txt
           
       # 5. Ejecuta el script principal de Python (Descarga + Procesamiento)

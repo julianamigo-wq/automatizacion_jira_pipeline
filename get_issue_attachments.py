@@ -94,6 +94,8 @@ def download_attachments():
     print(f"3. Proceso de descarga finalizado. Total descargado: {download_count}")
 
 
+# En get_issue_attachments.py, dentro de la función process_downloaded_files:
+
 def process_downloaded_files(target_dir: str):
     """
     Itera sobre los archivos descargados y aplica la lógica de procesamiento.
@@ -103,6 +105,12 @@ def process_downloaded_files(target_dir: str):
         print(f"ADVERTENCIA: La ruta {target_dir} no es un directorio válido.")
         return
 
+    # LISTA PARA RECOLECTAR LOS NOMBRES DE ARCHIVOS PROCESADOS/CREADOS
+    archivos_procesados = [] 
+    
+    # Aseguramos que las credenciales de JIRA sean accesibles (si están definidas globalmente)
+    # (Asumimos que JIRA_URL, JIRA_USER, JIRA_TOKEN, ISSUE_KEY son variables globales o se pasan al script)
+
     print("\n4. Iniciando el procesamiento de archivos descargados...")
     
     # Iteramos sobre todos los archivos dentro de la carpeta dinámica
@@ -110,10 +118,11 @@ def process_downloaded_files(target_dir: str):
         if filepath.is_file():
             print(f"   -> Procesando archivo: {filepath.name}")
             
-            try:
-                
+            try: 
+                # 1. Ejecutar ProcessDOC
                 file_text = ProcessDOC(str(filepath)).process()
-                # 1 y 2. Procesamiento, IA, etc.
+                
+                # 2. Enviar a send_chat (dentro creamos el prompt y concatenamos file_text)
                 if(file_text):
                     ai_text = send_chat(file_text, ISSUE_KEY)
                     if ai_text:
@@ -124,30 +133,37 @@ def process_downloaded_files(target_dir: str):
                         
                         # 4. Verificar si el XLSX se creó y subirlo a JIRA
                         if xlsx_path and xlsx_path.exists():
+                            
+                            # AÑADIR EL NOMBRE DEL NUEVO ARCHIVO A LA LISTA
+                            archivos_procesados.append(xlsx_path.name)
+                            
                             success = upload_attachment_to_jira(
                                 xlsx_path, 
                                 ISSUE_KEY, 
-                                JIRA_URL,   # <--- Pasa las credenciales
-                                JIRA_USER,  # <--- Leídas del entorno
-                                JIRA_TOKEN  # <--- 
+                                JIRA_URL, 
+                                JIRA_USER,
+                                JIRA_TOKEN
                             )
-                            if success:
-                                print(f"  -> Flujo HU: XLSX generado y subido a JIRA para {filepath.name}.")
-                            else:
-                                print(f"  -> Flujo HU: Falló la subida a JIRA para {filepath.name}.")
+                            # ... (resto de mensajes de éxito/fallo de subida a JIRA)
+
                         else:
                             print(f"  -> Flujo HU: Falló la creación del XLSX para {filepath.name}.")
 
                     else:
-                        print(f"  - Flujo HU: Falló la respuesta de IA para {filepath.name}.")
-
+                        print(f"  - Flujo HU: Falló la respuesta de IA para {filepath.name}.")
 
             except Exception as e:
                 print(f"ERROR: Falló el procesamiento del archivo {filepath.name}: {e}")
-                # Podemos continuar con el siguiente archivo o detener la ejecución
                 continue 
 
     print("5. Procesamiento de archivos adjuntos finalizado.")
+    
+    # 6. LLAMADA FINAL: ENVIAR CORREO DE NOTIFICACIÓN
+    if archivos_procesados:
+        print("\n6. Enviando notificación por correo electrónico.")
+        enviar_email(archivos_procesados, ISSUE_KEY)
+    else:
+        print("\n6. No se enviará correo. No se generaron archivos XLSX.")
 
 # --- PUNTO DE ENTRADA PRINCIPAL ---
 if __name__ == "__main__":

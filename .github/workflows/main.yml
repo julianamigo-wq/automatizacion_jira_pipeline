@@ -24,31 +24,42 @@ jobs:
         # El script crea CP/PROY-123 y exporta la ruta a $GITHUB_ENV como TARGET_DIR
         run: bash create_folders.sh "${{ env.ISSUE_KEY }}" 
       
-      # 3. Configura el entorno Python (tu solicitud)
+      # 3. Configura el entorno Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      # 4. Instala todas las dependencias (tu solicitud)
-      - name: Install dependencies
-        run: |
-          pip install requests pypdf python-docx openai openpyxl pandas xlsxwriter
+      # 4. INSTALACIÓN OPTIMIZADA CON CACHING (Nuevo)
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          # Ruta donde pip guarda los archivos de caché
+          path: ~/.cache/pip
+          # La clave de caché es única para el SO y el contenido de requirements.txt
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          # Si la clave actual no existe, intenta restaurar la última clave que coincida
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies (Usando requirements.txt)
+        # Instalación limpia que usa la caché si está disponible, sino descarga
+        run: pip install -r requirements.txt
           
       # 5. Ejecuta el script principal de Python (Descarga + Procesamiento)
-      - name: Ejecutar Descarga de Adjuntos
+      - name: Ejecutar Descarga de Adjuntos y Procesamiento
         run: python get_issue_attachments.py
         env:
-          # Inyecta las credenciales de los Secrets de GitHub al entorno del script
+          # --- Credenciales y Secrets ---
           URL_JIRA: ${{ secrets.URL_JIRA }} 
           USER_JIRA: ${{ secrets.USER_JIRA }}
           JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
           OPENROUTER_APIKEY: ${{secrets.OPENROUTER_APIKEY}}
 
-          # credenciales de smtp
+          # Credenciales de SMTP
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}      
           PASSWORD_SENDER: ${{ secrets.PASSWORD_SENDER }}
           
-          # Inyecta la clave de la incidencia (de env) y la ruta dinámica (de $GITHUB_ENV)
+          # Variables dinámicas
           ISSUE_KEY: ${{ env.ISSUE_KEY }}
-          TARGET_DIR: ${{ env.TARGET_DIR }} # <-- ¡Clave! Lee la ruta generada por el script Bash.
+          TARGET_DIR: ${{ env.TARGET_DIR }}

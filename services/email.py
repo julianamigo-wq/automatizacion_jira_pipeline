@@ -33,7 +33,7 @@ def enviar_email(file_list: List[str], name_issue: str):
     
     BODY = f"""
         <h1 style='color:#1E90FF;'>Proceso de Adjuntos de JIRA Finalizado</h1><hr>
-        <h3 style='color:#3CB371;'>La carpeta del ticket {name_issue} contiene los siguientes archivos:</h3>
+        <h3 style='color:#3CB371;'>El ticket {name_issue} en JIRA se actualizo con los siguientes archivos:</h3>
         <ul>
             {list_items}
         </ul>

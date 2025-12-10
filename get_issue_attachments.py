@@ -111,28 +111,37 @@ def process_downloaded_files(target_dir: str):
             print(f"   -> Procesando archivo: {filepath.name}")
             
             try:
-                # 1. Ejecutar ProcessDOC
-                # Utilizamos str(filepath) para asegurar que ProcessDOC reciba la ruta como cadena
-                file_text = ProcessDOC(str(filepath)).process()
                 
-                # 2. Enviar a send_chat (dentro creamos el prompt y concatenamos file_text)
+                file_text = ProcessDOC(str(filepath)).process()
+                # 1 y 2. Procesamiento, IA, etc.
                 if(file_text):
                     ai_text = send_chat(file_text, ISSUE_KEY)
-                    # Validamos ia_text
                     if ai_text:
-                        # Convertimos target_dir (que es un string) a Path justo antes de usarlo
-                        target_dir_path = Path(target_dir) 
+                        target_dir_path = Path(target_dir) # Conversión a Path
                         
-                        # 3. Generar archivo XLSX
-                        createxlsx(ai_text, target_dir_path, ISSUE_KEY)
-            
-                        print(f"  - Flujo HU Terminado: {filepath.name}")
-                    else:
-                        print(f"  - Flujo HU: Falló la respuesta de IA para {filepath.name}.")
+                        # 3. Generar archivo XLSX y CAPTURAR LA RUTA
+                        xlsx_path = createxlsx(ai_text, target_dir_path, ISSUE_KEY)
+                        
+                        # 4. Verificar si el XLSX se creó y subirlo a JIRA
+                        if xlsx_path and xlsx_path.exists():
+                            success = upload_attachment_to_jira(
+                                xlsx_path, 
+                                ISSUE_KEY, 
+                                JIRA_URL,   # <--- Pasa las credenciales
+                                JIRA_USER,  # <--- Leídas del entorno
+                                JIRA_TOKEN  # <--- 
+                            )
+                            if success:
+                                print(f"  -> Flujo HU: XLSX generado y subido a JIRA para {filepath.name}.")
+                            else:
+                                print(f"  -> Flujo HU: Falló la subida a JIRA para {filepath.name}.")
+                        else:
+                            print(f"  -> Flujo HU: Falló la creación del XLSX para {filepath.name}.")
 
-                else:
-                    print(f"  - Flujo HU: Falló la extracción de texto para {filepath}.")
-                
+                    else:
+                        print(f"  - Flujo HU: Falló la respuesta de IA para {filepath.name}.")
+
+
             except Exception as e:
                 print(f"ERROR: Falló el procesamiento del archivo {filepath.name}: {e}")
                 # Podemos continuar con el siguiente archivo o detener la ejecución

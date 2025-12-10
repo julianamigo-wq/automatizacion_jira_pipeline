@@ -1,72 +1,72 @@
-import requests
 import os
+import requests
 from pathlib import Path
-import sys
+from requests.auth import HTTPBasicAuth
+from typing import Union
 
-# La función debe recibir todos los parámetros necesarios del script principal.
-def upload_attachment_to_jira(issue_key: str, file_path: str, jira_url: str, jira_user: str, jira_token: str) -> bool:
+def upload_attachment_to_jira(
+    file_path: Path, 
+    issue_key: str,
+    jira_url: str,
+    jira_user: str,
+    jira_token: str
+) -> bool:
     """
-    Sube un archivo a un ticket específico de Jira como un nuevo adjunto.
+    Sube un archivo como adjunto a la incidencia de Jira especificada.
 
-    Args:
-        issue_key (str): La clave del ticket de Jira (ej: 'PROYECTO-123').
-        file_path (str): La ruta completa del archivo local a subir.
-        jira_url (str): URL base de la instancia de Jira (ej: https://tuempresa.atlassian.net).
-        jira_user (str): Correo electrónico del usuario de la API.
-        jira_token (str): Token de API de Atlassian.
-
-    Returns:
-        bool: True si la subida fue exitosa, False en caso contrario.
+    :param file_path: Ruta del archivo (objeto Path) a subir.
+    :param issue_key: Clave de la incidencia (ej: T1-1).
+    :param jira_url: URL base de la instancia de Jira (ej: https://tudominio.atlassian.net).
+    :param jira_user: Usuario o Email para la autenticación.
+    :param jira_token: Token de API para la autenticación.
+    :return: True si la subida fue exitosa, False en caso contrario.
     """
     
-    # 1. Construir la URL del endpoint de adjuntos
-    # Endpoint: /rest/api/3/issue/{issueIdOrKey}/attachments
-    api_url = f"{jira_url}/rest/api/3/issue/{issue_key}/attachments"
+    # 1. Validación inicial
+    if not file_path.exists():
+        print(f"ERROR JIRA UPLOAD: El archivo no existe en la ruta: {file_path}")
+        return False
+
+    if not all([jira_url, jira_user, jira_token]):
+        print("ERROR JIRA UPLOAD: Faltan credenciales de Jira.")
+        return False
+
+    # 2. Configuración de la API
+    # URL del endpoint de adjuntos: /rest/api/2/issue/{issueKey}/attachments
+    upload_url = f"{jira_url.rstrip('/')}/rest/api/2/issue/{issue_key}/attachments"
+    auth = HTTPBasicAuth(jira_user, jira_token)
     
-    # 2. Configurar la autenticación
-    auth = (jira_user, jira_token)
-    
-    # 3. Configurar los encabezados (Headers)
-    # Jira requiere el encabezado 'X-Atlassian-Token: no-check' para adjuntar archivos.
+    # 3. Preparación de la solicitud
+    # Este header es necesario para uploads de adjuntos en Jira Cloud/Server
     headers = {
-        'X-Atlassian-Token': 'no-check'
+        "X-Atlassian-Token": "no-check", 
     }
 
-    # 4. Leer el archivo y preparar la carga útil (Payload)
-    try:
-        # Abrimos el archivo en modo binario
-        with open(file_path, 'rb') as f:
-            file_name = Path(file_path).name
-            # El cuerpo de la petición debe ser 'files' para el tipo de contenido multipart/form-data
-            files = {
-                'file': (file_name, f)
-            }
-            
-            # 5. Realizar la petición POST
-            response = requests.post(
-                api_url,
-                auth=auth,
-                headers=headers,
-                files=files
-            )
-            
-            # 6. Verificar el estado de la respuesta
-            response.raise_for_status() # Lanza una excepción para códigos de error HTTP (4xx o 5xx)
-            
-            print(f"  -> INFO: Adjunto '{file_name}' subido correctamente a {issue_key}.")
-            return True
+    # Abrir el archivo en modo binario
+    with open(file_path, 'rb') as f:
+        files = {
+            # 'file': (nombre_archivo, contenido_binario, tipo_mime)
+            'file': (file_path.name, f, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        }
+        
+        print(f"Intentando subir el archivo '{file_path.name}' a la incidencia {issue_key}...")
+        
+        # 4. Envío de la solicitud POST
+        response = requests.post(
+            upload_url,
+            auth=auth,
+            files=files,
+            headers=headers
+        )
 
-    except requests.exceptions.HTTPError as e:
-        print(f"  -> ERROR HTTP al subir adjunto a Jira. Código: {e.response.status_code}")
-        print(f"  -> Respuesta de Jira: {e.response.text}")
+    # 5. Manejo de la respuesta
+    if response.status_code == 200:
+        print(f"  -> UPLOAD ÉXITOSO: '{file_path.name}' adjuntado a {issue_key}.")
+        return True
+    else:
+        print(f"  -> UPLOAD FALLIDO: Error {response.status_code} al adjuntar '{file_path.name}'.")
+        try:
+            print(f"     Respuesta de Jira: {response.json()}")
+        except requests.exceptions.JSONDecodeError:
+            print(f"     Respuesta de Jira (Texto): {response.text}")
         return False
-        
-    except FileNotFoundError:
-        print(f"  -> ERROR: Archivo no encontrado en la ruta: {file_path}")
-        return False
-        
-    except Exception as e:
-        print(f"  -> ERROR inesperado durante la subida: {e}")
-        return False
-        
-# -------------------------------------------------------------------------------------------------

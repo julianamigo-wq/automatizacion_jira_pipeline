@@ -22,7 +22,7 @@ jobs:
       # 2. Ejecuta el script Bash para crear carpetas
       - name: Crear Carpeta CP y Carpeta de la Incidencia
         # El script crea CP/PROY-123 y exporta la ruta a $GITHUB_ENV como TARGET_DIR
-        run: ./create_folders.sh "${{ env.ISSUE_KEY }}" 
+        run: bash create_folders.sh "${{ env.ISSUE_KEY }}" 
       
       # 3. Configura el entorno Python (tu solicitud)
       - name: Set up Python

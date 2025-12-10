@@ -40,9 +40,9 @@ jobs:
         run: python get_issue_attachments.py
         env:
           # Inyecta las credenciales de los Secrets de GitHub al entorno del script
-          URL_JIRA: ${{ secrets.URL_JIRA_SECRET }} 
-          USER_JIRA: ${{ secrets.USER_JIRA_SECRET }}
-          JIRA_TOKEN: ${{ secrets.JIRA_TOKEN_SECRET }}
+          URL_JIRA: ${{ secrets.URL_JIRA }} 
+          USER_JIRA: ${{ secrets.USER_JIRA }}
+          JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
           
           # Inyecta la clave de la incidencia (de env) y la ruta dinámica (de $GITHUB_ENV)
           ISSUE_KEY: ${{ env.ISSUE_KEY }}

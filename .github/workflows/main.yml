@@ -1,27 +1,37 @@
 name: 'Jira Webhook Direct'
 
-# Este flujo de trabajo se ejecuta desde el webhook de JIRA
 on:
   repository_dispatch:
+    types: [jira_trigger] # Asegúrate de que este 'type' coincida con tu regla de Jira
 
-# Permisos mínimos necesarios
 permissions:
-  contents: read
+  contents: write # Necesario para crear carpetas en el repositorio/runner
 
 jobs:
   process_jira_webhook:
     runs-on: ubuntu-latest
 
+    # 1. Definimos la variable de entorno para la clave de la incidencia
+    env:
+      ISSUE_KEY: ${{ github.event.client_payload.issue_key }}
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        # Añade openpyxl y las otras librerías necesarias para todo tu flujo
+      # 2. Paso para crear las carpetas
+      - name: Crear Carpeta CP y Carpeta de la Incidencia
         run: |
-          pip install requests pypdf python-docx openai openpyxl
+          # Variable para el nombre de la carpeta (ej: PROY-123)
+          ISSUE_FOLDER="${{ env.ISSUE_KEY }}"
+          
+          # 1. Creamos la carpeta principal 'CP'
+          mkdir -p CP
+          echo "Carpeta principal 'CP' creada."
+          
+          # 2. Creamos la subcarpeta usando la clave de la incidencia
+          mkdir -p CP/$ISSUE_FOLDER
+          echo "Subcarpeta 'CP/$ISSUE_FOLDER' creada con éxito."
+          
+          # 3. Imprimimos el mensaje de confirmación
+          echo "Estructura de carpetas lista para almacenar archivos."

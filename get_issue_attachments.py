@@ -116,14 +116,18 @@ def process_downloaded_files(target_dir: str):
                 file_text = ProcessDOC(str(filepath)).process()
                 
                 # 2. Imprimimos una parte del resultado para verificación (Opcional)
-                print(f"      - Extracción exitosa.")
+                print(f"      - Extracción exitosa de archivo {file_text} en el directorio {target_dir}.")
                 
                 # 3. Enviar a send_chat (dentro creamos el prompt y concatenamos file_text)
                 if(file_text):
                     ai_text = send_chat(file_text, ISSUE_KEY)
-                    # Imprimimos una parte del resultado para verificación (Opcional)
-                    print(f"      - Extracción exitosa. Texto extraído (primeros 100 caracteres):")
-                    print(f"        {ai_text[:100]}...")
+                    # Validamos ia_text
+                    if ai_text:
+                        # Generar archivo XLSX
+                        createxlsx(ai_text, target_dir, ISSUE_KEY)
+                        print(f"  - Flujo HU Terminado: {filepath.name}")
+                    else:
+                        print(f"  - Flujo HU: Falló la respuesta de IA para {filepath.name}.")
 
                 else:
                     print(f"  - Flujo HU: Falló la extracción de texto para {filepath}.")

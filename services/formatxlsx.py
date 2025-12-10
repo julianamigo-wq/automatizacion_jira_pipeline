@@ -16,44 +16,27 @@ def createxlsx(csv_text: str, target_dir: Path, name_issue: str) -> Path:
     """
 
     # --- 1. LIMPIEZA Y NORMALIZACIÓN DE DATOS ---
-    
-    # 1.1. Limpieza Agresiva: Eliminar líneas vacías, espacios alrededor de las líneas,
-    # y cualquier posible texto antes o después del bloque CSV.
     limpio_text = '\n'.join([line.strip() for line in csv_text.strip().split('\n') if line.strip()])
-    
-    # 1.2. Reemplazar posibles comillas dobles (") que la IA pudo haber usado para encerrar texto, 
-    # ya que a menudo rompen el parser de CSV, especialmente si el delimitador es un ';'
     limpio_text = limpio_text.replace('"', '') 
-
-    # Convertir el string limpio en un objeto de archivo en memoria para Pandas
     csv_file = StringIO(limpio_text)
 
     # --- 2. PARSEO DE DATOS (CON PANDAS) ---
-    
     try:
-        # 2.1. Leer el CSV en un DataFrame. Asumimos el delimitador es ';'
         df = pd.read_csv(
             csv_file, 
             sep=';', 
-            header='infer', # Le decimos a Pandas que determine el encabezado (la primera fila)
-            skipinitialspace=True, # Ignorar espacios después del delimitador (;)
-            lineterminator='\n' # Asegurar la detección correcta del salto de línea
+            header='infer', 
+            skipinitialspace=True, 
+            lineterminator='\n'
         )
-        
-        # Opcional: Eliminar cualquier fila que haya quedado completamente vacía
         df.dropna(how='all', inplace=True)
-        
-        # Si la limpieza introdujo una columna 'Unnamed: X', la eliminamos
         df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
     except Exception as e:
-        # Relanzamos el error para que el flujo principal lo capture
         print(f"ERROR: Falló el parseo del CSV con Pandas. Revise el formato del string de la IA: {e}")
-        raise e # Forzar la detención aquí si el formato es irrecuperable
+        raise e 
 
     # --- 3. CONSTRUCCIÓN DE LA RUTA Y ESCRITURA ---
-    
-    # 3.1. Generar ID único y nombre de archivo
     unique_id = uuid.uuid4().hex[:8]
     nombre_base = f"CP_{name_issue}_{unique_id}.xlsx"
     ruta_guardado = target_dir / nombre_base 
@@ -62,14 +45,15 @@ def createxlsx(csv_text: str, target_dir: Path, name_issue: str) -> Path:
     writer = pd.ExcelWriter(ruta_guardado, engine='xlsxwriter')
     
     # 3.3. Escribir los datos en el archivo (¡Rápido y eficiente!)
-    df.to_excel(writer, sheet_name='Casos de Prueba', index=False, startrow=0, header=True)
+    # NOTA: Escribimos los datos SIN formato aún
+    df.to_excel(writer, sheet_name='Casos de Prueba', index=False, startrow=1, header=False) # startrow=1, header=False
     
     # --- 4. APLICACIÓN DE FORMATO (CON XLSXWRITER) ---
     
     workbook = writer.book
     worksheet = writer.sheets['Casos de Prueba']
     
-    # 4.1. Definir el formato del encabezado
+    # 4.1. Definir el formato del ENCABEZADO (Fila 1)
     verde_claro_hex = '#CCFFCC'
     header_format = workbook.add_format({
         'bold': True,
@@ -80,19 +64,32 @@ def createxlsx(csv_text: str, target_dir: Path, name_issue: str) -> Path:
         'text_wrap': True
     })
 
-    # 4.2. Aplicar formato y auto-ajuste
-    for i, col in enumerate(df.columns):
-        # Aplicar formato al encabezado de la columna
-        worksheet.write(0, i, col, header_format)
+    # 4.2. Definir el formato de los DATOS (Todo el Cuerpo) <--- ¡NUEVO FORMATO!
+    data_format = workbook.add_format({
+        'align': 'center',       # Alineación horizontal: Centro
+        'valign': 'vcenter',     # Alineación vertical: Centro
+        'text_wrap': True        # Ajuste de texto (Wrap Text): Activado
+    })
+    
+    # 4.3. Escribir el encabezado y aplicar formato
+    for i, col_name in enumerate(df.columns):
+        # Escribir el nombre del encabezado en la fila 0 (fila 1 de Excel) con su formato
+        worksheet.write(0, i, col_name, header_format) 
         
-        # Calcular y aplicar ancho de columna
+        # 4.4. Aplicar el formato de datos a TODAS LAS CELDAS DE LA COLUMNA
+        # El formato se aplica al rango de filas (desde la fila 1 hasta el final)
+        
+        # worksheet.set_column(col_inicio, col_fin, ancho, formato)
+        # Aplicamos el ancho de columna que ya calculaste:
         max_len = max(
-            df[col].astype(str).map(len).max(),
-            len(col)
+            df[col_name].astype(str).map(len).max(),
+            len(col_name)
         ) or 10 
-        
         width = min(max_len * 1.2, 60)
-        worksheet.set_column(i, i, width)
+        
+        # Aplicamos el ancho y el formato de datos a TODAS LAS CELDAS (excepto el encabezado)
+        # El formato se aplicará de la fila 1 hasta la última (1048576, que es el máximo)
+        worksheet.set_column(i, i, width, data_format) 
 
     # --- 5. CIERRE Y RETORNO ---
     

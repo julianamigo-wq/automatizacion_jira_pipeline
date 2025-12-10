@@ -49,6 +49,7 @@ def download_attachments():
         print(f"ERROR al conectar con la API de Jira: {e}")
         sys.exit(1)
 
+    # attachments contiene la cantidad de adjuntos en la tarjeta
     attachments = issue_data.get('fields', {}).get('attachment', [])
     download_count = 0
 
@@ -93,11 +94,53 @@ def download_attachments():
     print(f"3. Proceso de descarga finalizado. Total descargado: {download_count}")
 
 
+def process_downloaded_files(target_dir: str):
+    """
+    Itera sobre los archivos descargados y aplica la lógica de procesamiento.
+    """
+    target_path = Path(target_dir)
+    if not target_path.is_dir():
+        print(f"ADVERTENCIA: La ruta {target_dir} no es un directorio válido.")
+        return
+
+    print("\n4. Iniciando el procesamiento de archivos descargados...")
+    
+    # Iteramos sobre todos los archivos dentro de la carpeta dinámica
+    for filepath in target_path.iterdir():
+        if filepath.is_file():
+            print(f"   -> Procesando archivo: {filepath.name}")
+            
+            try:
+                # 1. Ejecutar ProcessDOC
+                # Utilizamos str(filepath) para asegurar que ProcessDOC reciba la ruta como cadena
+                file_text = ProcessDOC(str(filepath)).process()
+                
+                # 2. Imprimimos una parte del resultado para verificación (Opcional)
+                print(f"      - Extracción exitosa. Texto extraído (primeros 100 caracteres):")
+                print(f"        {file_text[:100]}...")
+                
+                # 3. Aquí iría el resto de tu lógica: enviar a send_chat, procesar el texto, etc.
+                # Por ejemplo:
+                # result_chat = send_chat(file_text)
+                
+            except Exception as e:
+                print(f"ERROR: Falló el procesamiento del archivo {filepath.name}: {e}")
+                # Podemos continuar con el siguiente archivo o detener la ejecución
+                continue 
+
+    print("5. Procesamiento de archivos adjuntos finalizado.")
+
 # --- PUNTO DE ENTRADA PRINCIPAL ---
 if __name__ == "__main__":
+    
+    # 1. Aseguramos que las variables de entorno se lean (si es que no están en el top-level)
+    TARGET_DIR = os.getenv('TARGET_DIR')
+    
+    # 2. Descargamos todos los archivos (función que ya creamos)
     download_attachments()
     
-    # Aquí puedes añadir la llamada a tu lógica de procesamiento una vez que los archivos estén en TARGET_DIR
-    # Por ejemplo:
-    # if Path(TARGET_DIR).exists():
-    #     ProcessDOC(str(Path(TARGET_DIR) / 'documento.docx'))
+    # 3. Procesamos los archivos descargados
+    if TARGET_DIR:
+        process_downloaded_files(TARGET_DIR)
+    else:
+        print("ERROR: No se puede iniciar el procesamiento. TARGET_DIR está vacío.")

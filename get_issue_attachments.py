@@ -120,8 +120,12 @@ def process_downloaded_files(target_dir: str):
                     ai_text = send_chat(file_text, ISSUE_KEY)
                     # Validamos ia_text
                     if ai_text:
+                        # Convertimos target_dir (que es un string) a Path justo antes de usarlo
+                        target_dir_path = Path(target_dir) 
+                        
                         # 3. Generar archivo XLSX
-                        createxlsx(ai_text, target_dir, ISSUE_KEY)
+                        createxlsx(ai_text, target_dir_path, ISSUE_KEY)
+            
                         print(f"  - Flujo HU Terminado: {filepath.name}")
                     else:
                         print(f"  - Flujo HU: Falló la respuesta de IA para {filepath.name}.")

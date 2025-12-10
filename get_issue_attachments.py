@@ -116,12 +116,17 @@ def process_downloaded_files(target_dir: str):
                 file_text = ProcessDOC(str(filepath)).process()
                 
                 # 2. Imprimimos una parte del resultado para verificación (Opcional)
-                print(f"      - Extracción exitosa. Texto extraído (primeros 100 caracteres):")
-                print(f"        {file_text[:100]}...")
+                print(f"      - Extracción exitosa.")
                 
-                # 3. Aquí iría el resto de tu lógica: enviar a send_chat, procesar el texto, etc.
-                # Por ejemplo:
-                # result_chat = send_chat(file_text)
+                # 3. Enviar a send_chat (dentro creamos el prompt y concatenamos file_text)
+                if(file_text):
+                    ai_text = send_chat(file_text, ISSUE_KEY)
+                    # Imprimimos una parte del resultado para verificación (Opcional)
+                    print(f"      - Extracción exitosa. Texto extraído (primeros 100 caracteres):")
+                    print(f"        {ai_text[:100]}...")
+
+                else:
+                    print(f"  - Flujo HU: Falló la extracción de texto para {filepath}.")
                 
             except Exception as e:
                 print(f"ERROR: Falló el procesamiento del archivo {filepath.name}: {e}")

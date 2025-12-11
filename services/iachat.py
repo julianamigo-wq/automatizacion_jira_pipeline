@@ -18,12 +18,12 @@ Descripción/Objetivo: Breve explicación de lo que el caso de prueba intenta va
 Precondiciones: Los requisitos que deben cumplirse antes de ejecutar la prueba (Ej: Usuario registrado, Base de datos inicializada).
 Pasos de Ejecución: El conjunto de acciones detalladas a seguir para ejecutar el caso de prueba (Ej: 1. Ingresar usuario 'X', 2. Ingresar password... etc).
 Resultado Esperado: La respuesta o estado que el sistema debería tener después de seguir los pasos (Ej: El usuario es redirigido al Dashboard).
-Resultado Actual: Este debe de estar en blanco para poder ser llenado por el QA o tester.
+Resultado Actual: Debe contener la palabra VACÍO.
 Estado (Status): Este por defecto debe de ir como NO EJECUTADO.
-ID del Defecto (si aplica): Este debe estar en blanco para ser llenado más adelante.
-Ejecutor/Fecha de Ejecución: También debe de estar en blanco para ser llenado más adelante.
-Recursos: También debe de estar en blanco ya que aquí el QA podra poner imagenes, links u otros.
-Necesito que lo muestres como si fuera un formato CSV puro, y no escribas nada adicional ni sugerencias finales,
+ID del Defecto (si aplica): Debe contener la palabra VACÍO.
+Ejecutor/Fecha de Ejecución: Debe contener la palabra VACÍO.
+Recursos: Debe contener la palabra VACÍO.
+Esas son los campos que debe contener el archivo. Necesito que lo muestres como si fuera un formato CSV puro, y no escribas nada adicional ni sugerencias finales,
 ni caracteres especiales, adornos de emojis, negritas o formatos de texto. Solo el resultado de manera sobria.
 La información es la siguiente:
 

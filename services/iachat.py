@@ -21,10 +21,10 @@ Resultado Esperado: La respuesta o estado que el sistema debería tener después
 Resultado Actual: Debe contener la palabra VACÍO.
 Estado (Status): Este por defecto debe de ir como NO EJECUTADO.
 ID del Defecto (si aplica): Debe contener la palabra VACÍO.
-Ejecutor/Fecha de Ejecución: Debe contener la palabra VACÍO.
+Fecha de Ejecución: Debe contener la palabra VACÍO.
 Recursos: Debe contener la palabra VACÍO.
-Esas son los campos que debe contener el archivo. Necesito que lo muestres como si fuera un formato CSV puro, y no escribas nada adicional ni sugerencias finales,
-ni caracteres especiales, adornos de emojis, negritas o formatos de texto. Solo el resultado de manera sobria.
+Esas son los campos que debe contener el archivo, recuerda que estas son 11 las columnas. Necesito que lo muestres como si fuera un formato CSV puro, y no 
+escribas nada adicional ni sugerencias finales, ni caracteres especiales, adornos de emojis, negritas o formatos de texto. Solo el resultado de manera sobria.
 La información es la siguiente:
 
 """

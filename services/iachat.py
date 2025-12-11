@@ -13,9 +13,16 @@ que cubran las funcionalidades descritas, incluyendo escenarios positivos, negat
 cuando sea pertinente.El formato de respuesta debe ser una tabla sencilla con las siguientes columnas
 para cada caso de prueba, utilizando únicamente el punto y coma (;) como delimitador para separar los campos:
 ID del Caso: Debe seguir el formato numero_correlativo_{issue_code} (ej: 1_{issue_code}, 2_{issue_code}, 3_{issue_code}, etc).
-Nombre/Descripción del Caso
-Pasos a Seguir
-Resultado Esperado.
+Módulo/Funcionalidad: La sección o característica específica del software que se está probando (Ej: Login, Carrito de Compras, Generación de Reportes).
+Descripción/Objetivo: Breve explicación de lo que el caso de prueba intenta validar (Ej: Verificar inicio de sesión exitoso con credenciales válidas).
+Precondiciones: Los requisitos que deben cumplirse antes de ejecutar la prueba (Ej: Usuario registrado, Base de datos inicializada).
+Pasos de Ejecución: El conjunto de acciones detalladas a seguir para ejecutar el caso de prueba (Ej: 1. Ingresar usuario 'X', 2. Ingresar password... etc).
+Resultado Esperado: La respuesta o estado que el sistema debería tener después de seguir los pasos (Ej: El usuario es redirigido al Dashboard).
+Resultado Actual: Este debe de estar en blanco para poder ser llenado por el QA o tester.
+Estado (Status): Este por defecto debe de ir como NO EJECUTADO.
+ID del Defecto (si aplica): Este debe estar en blanco para ser llenado más adelante.
+Ejecutor/Fecha de Ejecución: También debe de estar en blanco para ser llenado más adelante.
+Recursos: También debe de estar en blanco ya que aquí el QA podra poner imagenes, links u otros.
 Necesito que lo muestres como si fuera un formato CSV puro, y no escribas nada adicional ni sugerencias finales,
 ni caracteres especiales, adornos de emojis, negritas o formatos de texto. Solo el resultado de manera sobria.
 La información es la siguiente:

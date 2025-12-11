@@ -7,25 +7,24 @@ from openai import OpenAI
 # Usamos un marcador de posición, como {issue_code}, en lugar de una f-string
 # que se evaluaría de inmediato.
 texto_plantilla = """
-A continuación, te proporcionaré la información de una Historia de Usuario. Tu tarea es analizar
-esta historia, identificar los requisitos clave, y generar una lista de Casos de Prueba (Test Cases)
-que cubran las funcionalidades descritas, incluyendo escenarios positivos, negativos y de borde
-cuando sea pertinente.El formato de respuesta debe ser una tabla sencilla con las siguientes columnas
-para cada caso de prueba, utilizando únicamente el punto y coma (;) como delimitador para separar los campos:
-ID del Caso: Debe seguir el formato numero_correlativo_{issue_code} (ej: 1_{issue_code}, 2_{issue_code}, 3_{issue_code}, etc).
-Módulo/Funcionalidad: La sección o característica específica del software que se está probando (Ej: Login, Carrito de Compras, Generación de Reportes).
-Descripción/Objetivo: Breve explicación de lo que el caso de prueba intenta validar (Ej: Verificar inicio de sesión exitoso con credenciales válidas).
-Precondiciones: Los requisitos que deben cumplirse antes de ejecutar la prueba (Ej: Usuario registrado, Base de datos inicializada).
-Pasos de Ejecución: El conjunto de acciones detalladas a seguir para ejecutar el caso de prueba (Ej: 1. Ingresar usuario 'X', 2. Ingresar password... etc).
-Resultado Esperado: La respuesta o estado que el sistema debería tener después de seguir los pasos (Ej: El usuario es redirigido al Dashboard).
-Resultado Actual: Debe contener la palabra VACÍO.
-Estado (Status): Este por defecto debe de ir como NO EJECUTADO.
-ID del Defecto (si aplica): Debe contener la palabra VACÍO.
-Fecha de Ejecución: Debe contener la palabra VACÍO.
-Recursos: Debe contener la palabra VACÍO.
-Esas son los campos que debe contener el archivo, recuerda que estas son 11 las columnas. Necesito que lo muestres como si fuera un formato CSV puro, y no 
-escribas nada adicional ni sugerencias finales, ni caracteres especiales, adornos de emojis, negritas o formatos de texto. Solo el resultado de manera sobria.
-La información es la siguiente:
+ANALIZA LA HISTORIA DE USUARIO PROPORCIONADA A CONTINUACIÓN. IDENTIFICA LOS REQUISITOS CLAVE Y GENERA UNA LISTA DE CASOS DE PRUEBA (TEST CASES) CUBRIENDO ESCENARIOS POSITIVOS, NEGATIVOS Y DE BORDE.
+
+EL FORMATO DE RESPUESTA DEBE SER CSV PURO, UTILIZANDO ÚNICAMENTE EL PUNTO Y COMA (;) COMO DELIMITADOR. NO INCLUIR ENCABEZADOS, INTRODUCCIONES, CONCLUSIONES O CUALQUIER TEXTO ADICIONAL FUERA DEL CONTENIDO CSV.
+
+EL RESULTADO DEBE CONTENER EXACTAMENTE 11 COLUMNAS EN ESTE ORDEN:
+1. ID del Caso: Formato numero_correlativo_{issue_code} (Ej: 1_{issue_code}).
+2. Módulo/Funcionalidad: Característica específica probada.
+3. Descripción/Objetivo: Breve explicación de la validación.
+4. Precondiciones: Requisitos previos a la ejecución.
+5. Pasos de Ejecución: Acciones detalladas a seguir.
+6. Resultado Esperado: La respuesta esperada del sistema.
+7. Resultado Actual: Debe contener la palabra RELLENAR.
+8. Estado (Status): Debe contener la palabra NO EJECUTADO.
+9. ID del Defecto (si aplica): Debe contener la palabra RELLENAR.
+10. Fecha de Ejecución: Debe contener la palabra RELLENAR.
+11. Recursos: Debe contener la palabra RELLENAR.
+
+HISTORIA DE USUARIO:
 
 """
 

@@ -60,7 +60,6 @@ async def fetch_jira_attachments_metadata(client: httpx.AsyncClient) -> list:
         sys.exit(1)
 
 async def download_single_attachment(client: httpx.AsyncClient, attachment: dict, target_dir: str) -> bool:
-    """Descarga un único adjunto de forma asíncrona."""
     filename = attachment['filename']
     content_url = attachment['content']
     filepath = Path(target_dir) / filename
@@ -74,16 +73,22 @@ async def download_single_attachment(client: httpx.AsyncClient, attachment: dict
     print(f"   -> Iniciando descarga: {filename}")
     
     try:
-        # Usa stream=True para descargas grandes
-        async with client.stream("GET", content_url, timeout=None) as file_response:
-            file_response.raise_for_status()
+        # [MODIFICACIÓN CLAVE]: Usamos client.get() en lugar de client.stream().
+        # Esto permite que httpx gestione automáticamente la redirección 303,
+        # y la respuesta final (file_response) será la que contenga el archivo real (código 200).
+        file_response = await client.get(content_url, follow_redirects=True, timeout=None)
+        
+        # Ahora, raise_for_status() se ejecuta en la respuesta 200 OK final, o falla solo si es 4xx/5xx.
+        file_response.raise_for_status()
+        
+        # [MODIFICACIÓN CLAVE]: Guardamos todo el contenido de una vez (file_response.content).
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        with open(filepath, 'wb') as f:
+            f.write(file_response.content)
             
-            with open(filepath, 'wb') as f:
-                async for chunk in file_response.aiter_bytes(chunk_size=8192):
-                    f.write(chunk)
-            
-            print(f"   -> Guardado OK: {filepath.name}")
-            return True
+        print(f"   -> Guardado OK: {filepath.name}")
+        return True
+        
     except httpx.RequestError as e:
         print(f"ERROR al descargar '{filename}': {e}")
         return False

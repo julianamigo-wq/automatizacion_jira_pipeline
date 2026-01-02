@@ -107,6 +107,9 @@ async def process_single_file(filepath: Path) -> str | None:
     def sync_processing_workflow():
         """Flujo de trabajo síncrono original para un solo archivo."""
         try:
+            if "corrupto" in filepath.name:
+                raise ValueError("Simulación de error: Archivo corrupto detectado")
+                
             # 1. Ejecutar ProcessDOC
             file_text = ProcessDOC(str(filepath)).process()
             

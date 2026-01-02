@@ -2,7 +2,7 @@ name: 'Jira Webhook Direct'
 
 on:
   repository_dispatch:
-    types: [jira_trigger] # Debe coincidir con el event_type de Jira
+    types: [bob_esponja] # Debe coincidir con el event_type de Jira [jira_trigger]
 
 permissions:
   contents: write # Necesario para crear carpetas
